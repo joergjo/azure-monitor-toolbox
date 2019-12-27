@@ -1,0 +1,100 @@
+#!/bin/bash
+set -e
+
+#Set defaults
+webapp=$1
+location=$2
+rg=$3
+tag=$4
+plan=$5
+sku=$6
+
+function show_usage_and_exit {
+    echo "Usage: setup-grafana.azcli <webapp> [<location>] [<resource-group>] [<tag>] [<app-service-plan>] [<sku>]"
+    echo "<webapp> specifies the Web App name, i.e. <webapp>.azurewebsites.net. Mandatory."
+    echo "<location> specifies the Azure region. Defaults to \"$location\"."
+    echo "<resource-group> specifies the resource group. Defaults to \"$rg\"."
+    echo "<tag> specifies the  Grafana Docker image tag. Defaults to \"$tag\"."
+    echo "<app-service-plan> specifies the App Service plan. Defaults to \"$plan\"."
+    echo "<sku> specifies the App Service SKU. Defaults to \"$sku\"."
+    exit 1
+}
+
+if [ -z $webapp ]; then
+    show_usage_and_exit
+fi
+
+if [ -z $location ]; then
+    location=westeurope
+fi
+
+if [ -z $rg ]; then
+    rg=azure-monitor-toolbox
+fi
+
+if [ -z $tag ]; then
+    tag=latest
+fi
+
+if [ -z $plan ]; then
+    plan=grafana-linux-plan
+fi
+
+if [ -z $sku ]; then
+    sku=B1
+fi
+
+# Register Azure AD application and service principal
+aad_tenant_id=$(az account show --query tenantId -o tsv)
+webapp_login_url="https://$webapp.azurewebsites.net/login/generic_oauth"
+
+echo "Registering application for Grafana in Azure AD in tenant \"$aad_tenant_id\"..."
+time_stamp=$(date --utc +"%s")
+aad_app_secret=$(uuidgen)
+aad_app_id=$(az ad app create --display-name "Grafana Azure App Service" \
+    --identifier-uris "http://$webapp-$time_stamp" \
+    --password $aad_app_secret \
+    --homepage $webapp_login_url \
+    --reply-urls $webapp_login_url \
+    --query appId -o tsv)
+az ad sp create --id $aad_app_id
+
+# Create configuration settings
+echo "Generating Web App configuration..."
+admin_pwd=$(uuidgen)
+cp appsettings.template.json appsettings.json
+sed -i "s/__1__/$webapp/g" appsettings.json 
+sed -i "s/__2__/$aad_app_id/g" appsettings.json 
+sed -i "s/__3__/$aad_app_secret/g" appsettings.json 
+sed -i "s/__4__/$aad_tenant_id/g" appsettings.json 
+sed -i "s/__5__/$admin_pwd/g" appsettings.json 
+
+# Create Azure resources
+echo "Creating resource group \"$rg\" in \"$location\"..."
+az group create -g $rg -l $location
+
+echo "Creating App Service plan \"$plan\" of size \"$sku\"..."
+az appservice plan create -g $rg -n $plan --is-linux --sku $sku
+
+image=grafana/grafana:$tag
+echo "Creating Web App $webapp using \"$image\"..."
+az webapp create -g $rg -n $webapp -p $plan -i $image
+
+echo "Updating Web App configuration..."
+az webapp config appsettings set -g $rg -n $webapp --settings @appsettings.json
+az webapp config set -g $rg -n $webapp --always-on true
+
+# Provision AAD user
+user_name=$(az account show --query user.name -o tsv)
+echo "Launch https://$webapp.azurewebsites.net/ and log in using OAuth2 as \"$user_name\"." 
+echo "After successfully logging in, press any key to continue this script."
+read -s -n 1 
+echo "Elevating $user_name to Grafana Admin..."
+id=$(curl -s -X GET -u "admin:$admin_pwd" "https://$webapp.azurewebsites.net/api/users/lookup?loginOrEmail=$user_name" | jq ".id")
+curl -s -X PUT -u "admin:$admin_pwd" \
+    -d '{ "isGrafanaAdmin": true }' -H "Content-Type: application/json" \
+    "https://$webapp.azurewebsites.net/api/admin/users/$id/permissions"
+curl -s -X PATCH -u "admin:$admin_pwd" \
+    -d '{ "role": "Admin" }' -H "Content-Type: application/json" \
+    "https://$webapp.azurewebsites.net/api/org/users/$id"
+echo "Done. Have fun!"
