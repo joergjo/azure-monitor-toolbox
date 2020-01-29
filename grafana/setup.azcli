@@ -1,7 +1,14 @@
 #!/bin/bash
 set -e
 
-#Set defaults
+#Set defaults 
+default_location=westeurope
+default_rg=azure-monitor-toolbox
+default_tag=latest
+default_plan=grafana-linux-plan
+default_sku=B1
+
+#Set script variables
 webapp=$1
 location=$2
 rg=$3
@@ -12,11 +19,11 @@ sku=$6
 function show_usage_and_exit {
     echo "Usage: setup-grafana.azcli <webapp> [<location>] [<resource-group>] [<tag>] [<app-service-plan>] [<sku>]"
     echo "<webapp> specifies the Web App name, i.e. <webapp>.azurewebsites.net. Mandatory."
-    echo "<location> specifies the Azure region. Defaults to \"$location\"."
-    echo "<resource-group> specifies the resource group. Defaults to \"$rg\"."
-    echo "<tag> specifies the  Grafana Docker image tag. Defaults to \"$tag\"."
-    echo "<app-service-plan> specifies the App Service plan. Defaults to \"$plan\"."
-    echo "<sku> specifies the App Service SKU. Defaults to \"$sku\"."
+    echo "<location> specifies the Azure region. Defaults to \"$default_location\"."
+    echo "<resource-group> specifies the resource group. Defaults to \"$default_rg\"."
+    echo "<tag> specifies the  Grafana Docker image tag. Defaults to \"$default_tag\"."
+    echo "<app-service-plan> specifies the App Service plan. Defaults to \"$default_plan\"."
+    echo "<sku> specifies the App Service SKU. Defaults to \"$default_sku\"."
     exit 1
 }
 
@@ -25,23 +32,23 @@ if [ -z $webapp ]; then
 fi
 
 if [ -z $location ]; then
-    location=westeurope
+    location=$default_location
 fi
 
 if [ -z $rg ]; then
-    rg=azure-monitor-toolbox
+    rg=$default_rg
 fi
 
 if [ -z $tag ]; then
-    tag=latest
+    tag=$default_tag
 fi
 
 if [ -z $plan ]; then
-    plan=grafana-linux-plan
+    plan=$default_plan
 fi
 
 if [ -z $sku ]; then
-    sku=B1
+    sku=$default_sku
 fi
 
 # Register Azure AD application and service principal
