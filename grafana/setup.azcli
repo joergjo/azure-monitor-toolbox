@@ -81,7 +81,7 @@ echo "Creating resource group \"$rg\" in \"$location\"..."
 az group create -g $rg -l $location
 
 echo "Creating App Service plan \"$plan\" of size \"$sku\"..."
-az appservice plan create -g $rg -n $plan --is-linux --sku $sku
+az appservice plan create -g $rg -n $plan -l $location --is-linux --sku $sku
 
 image=grafana/grafana:$tag
 echo "Creating Web App $webapp using \"$image\"..."
