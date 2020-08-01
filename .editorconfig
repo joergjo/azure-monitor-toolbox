@@ -3,7 +3,12 @@
 # top-most EditorConfig file
 root = true
 
-[*.{js,json,yaml}]
-# 2 space indentation
+[*]
 indent_style = space
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{js,json,yaml,yml}]
+# 2 space indentation
 indent_size = 2
