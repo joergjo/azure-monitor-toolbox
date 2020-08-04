@@ -1,0 +1,24 @@
+version: "3.4"
+
+volumes:
+  grafana-db:
+
+services:
+  grafana:
+    image: grafana/grafana:__1__
+    ports:
+      - 3000:3000
+    environment:
+      GF_SERVER_ROOT_URL: "http://localhost:3000"
+      GF_AUTH_GENERIC_OAUTH_NAME: "Azure AD"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "__2__"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "__3__"
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: "https://login.microsoftonline.com/__4__/oauth2/v2.0/authorize"
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "https://login.microsoftonline.com/__4__/oauth2/v2.0/token"
+      GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+      GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
+      GF_AUTH_GENERIC_OAUTH_SCOPES: "openid email profile"
+      GF_INSTALL_PLUGINS: "grafana-azure-data-explorer-datasource"
+      GF_SECURITY_ADMIN_PASSWORD: "__5__"
+    volumes:
+      - grafana-db:/var/lib/grafana
