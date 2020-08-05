@@ -85,7 +85,7 @@ az rest \
   --uri https://graph.microsoft.com/v1.0/users/$principal_id/appRoleAssignments \
   --body @appRoleAssignment.generated.json \
   --headers "Content-Type=application/json" \
-  | jq
+  -o none
 
 # Create configuration settings
 admin_pwd=$(uuidgen)
@@ -111,7 +111,7 @@ echo "Creating resource group \"$rg\" in \"$location\"..."
 az group create \
   -g $rg \
   -l $location \
-  | jq
+  -o none
 
 echo "Creating App Service plan \"$plan\" of size \"$sku\"..."
 az appservice plan create \
@@ -120,30 +120,31 @@ az appservice plan create \
   -l $location \
   --is-linux \
   --sku $sku \
-  | jq
+  -o none
 
-echo "Creating Web App $webapp using \"grafana/grafana:$tag\"..."
+echo "Creating Web App \"$webapp\" using \"grafana/grafana:$tag\"..."
 az webapp create \
   -g $rg \
   -n $webapp \
   -p $plan \
   -i grafana/grafana:$tag \
-  | jq
+  -o none
 az webapp update \
   -g $rg \
   -n $webapp \
- --https-only true
+ --https-only true \
+ -o none
 
 echo "Updating Web App configuration..."
 az webapp config appsettings set \
   -g $rg \
   -n $webapp \
   --settings @appSettings.generated.json \
-  | jq
+  -o none
 az webapp config set \
   -g $rg \
   -n $webapp \
   --always-on true \
-  | jq
+  -o none
 
 echo "Done. Open https://$webapp.azurewebsites.net or run \"docker-compose -f docker-compose.generated.yml\"."
