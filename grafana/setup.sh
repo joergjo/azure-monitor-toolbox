@@ -22,8 +22,10 @@ postgresql_storage=$8
 
 function show_usage_and_exit {
   echo "This script creates an Azure App Service running Grafana with an Azure Database for PostgreSQL as Grafana database."
+  echo "Grafana will be integrated with your current Azure AD tenant and your current Azure CLI user will be added"
+  echo "to the \"Grafana Admin\" Azure AD application role."
   echo
-  echo "Usage: setup-grafana.sh <webapp> [<tag>] [<location>] [<resource-group>] [<app-service-plan>] [<app-service-sku>] [<postgresql-sku>] [<postgresql-storage>]"
+  echo "Usage: setup.sh <webapp> [<tag>] [<location>] [<resource-group>] [<app-service-plan>] [<app-service-sku>] [<postgresql-sku>] [<postgresql-storage>]"
   echo "<webapp> specifies the Web App name, i.e. <webapp>.azurewebsites.net. Mandatory."
   echo "<tag> specifies the Grafana Docker image tag. Defaults to \"$default_tag\"."
   echo "<location> specifies the Azure region. Defaults to \"$default_location\"."
