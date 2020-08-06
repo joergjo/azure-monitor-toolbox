@@ -1,7 +1,7 @@
 version: "3.4"
 
 volumes:
-  grafana-db:
+  grafana-data:
 
 services:
   grafana:
@@ -19,5 +19,11 @@ services:
       GF_AUTH_AZUREAD_SCOPES: "openid email profile"
       GF_INSTALL_PLUGINS: "grafana-azure-data-explorer-datasource"
       GF_SECURITY_ADMIN_PASSWORD: "__5__"
+      GF_DATABASE_TYPE: "postgres"
+      GF_DATABASE_HOST: "__6__.postgres.database.azure.com"
+      GF_DATABASE_USER: "__7__"
+      GF_DATABASE_PASSWORD: "__8__"
+      GF_DATABASE_SSL_MODE: "require"
     volumes:
-      - grafana-db:/var/lib/grafana
+      - grafana-data:/var/lib/grafana
+
