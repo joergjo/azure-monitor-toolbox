@@ -26,4 +26,3 @@ services:
       GF_DATABASE_SSL_MODE: "require"
     volumes:
       - grafana-data:/var/lib/grafana
-
