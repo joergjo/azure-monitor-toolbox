@@ -76,7 +76,6 @@ time_stamp=$(date --utc +%Y%m%d-%H%M%S)
 aad_app_secret=$(uuidgen)
 aad_app_id=$(az ad app create \
   --display-name "Grafana Azure App Service" \
-  --identifier-uris "http://$webapp-$time_stamp" \
   --password $aad_app_secret \
   --homepage "https://$webapp.azurewebsites.net" \
   --reply-urls "http://localhost:3000/login/azuread" "https://$webapp.azurewebsites.net/login/azuread" \
